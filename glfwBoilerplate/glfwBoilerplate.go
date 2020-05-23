@@ -1,6 +1,8 @@
 package glfwBoilerplate
 
 import(
+	"fmt"
+	
 	"github.com/go-gl/gl/v4.1-core/gl"
 	"github.com/go-gl/glfw/v3.1/glfw"
 )
@@ -50,3 +52,17 @@ func keyCallback(window *glfw.Window, key glfw.Key, scancode int,
 	}
 }
 
+func DisplayFrameRate(window *glfw.Window, title string,
+	numFrames, lastTime float64) (float64, float64) {
+
+	currentTime := glfw.GetTime()
+	delta := currentTime - lastTime
+	numFrames += 1
+	if delta >= 1.0 {
+		window.SetTitle(fmt.Sprintf(title + " fps=%f", numFrames / delta))
+		numFrames = 0
+		lastTime = currentTime
+	}
+
+	return lastTime, numFrames
+}
