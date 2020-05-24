@@ -8,6 +8,6 @@ Conways game of life visually implemented in Go using opengl. Different techniqu
 
 Instancing takes advantage of using the Instancing feature in OpenGl to avoid CPU and GPU communication when drawing a lot of the same objects. 
 
-~21fps at a 1000 by 1000 board
+~80fps at a 1000 by 1000 board
 
 

@@ -7,7 +7,7 @@ import(
 	"runtime"
 	"fmt"
 	"unsafe"
-	"time"
+//	"time"
 	
 	"github.com/go-gl/gl/v4.1-core/gl"
 	"github.com/go-gl/glfw/v3.1/glfw"
@@ -23,9 +23,9 @@ func init() {
 }
 
 func makeBuffers(board []float32,
-	num_x, num_y int) (uint32, uint32, uint32, uint32) {
+	numX, num_y int) (uint32, uint32, uint32, uint32) {
 
-	translations := conways.GetPositions(num_x, num_y)
+	translations := conways.GetPositions(numX, num_y)
 	
 	// Store these positions in a buffer
 	sizeOfVec2 := 4 * 2
@@ -46,17 +46,17 @@ func makeBuffers(board []float32,
 	
 	
 	// Set up vertex data and buffers and config vertex attribs
-	xOffset := 1.0 / float32(num_x)
+	xOffset := 1.0 / float32(numX)
 	yOffset := 1.0 / float32(num_y)
 	Vertices := []float32{
 		// positions     
-        -xOffset,  yOffset, 
-		 xOffset, -yOffset, 
-        -xOffset, -yOffset, 
+		-xOffset,  yOffset, 
+		xOffset, -yOffset,
+		-xOffset, -yOffset, 
 
-        -xOffset,  yOffset, 
-		 xOffset, -yOffset, 
-		 xOffset,  yOffset, 
+		-xOffset,  yOffset, 
+		xOffset, -yOffset, 
+		xOffset,  yOffset, 
 	}
 	var quadVBO, quadVAO uint32		
 	gl.GenVertexArrays(1, &quadVAO)
@@ -87,8 +87,8 @@ func makeBuffers(board []float32,
 }
 
 func main() {
-	num_x := 1000
-	num_y := 1000
+	numX := 1000
+	numY := 1000
 	title := "Instancing method"
 	fmt.Println("Starting")
 	
@@ -98,9 +98,9 @@ func main() {
 	
 	ourShader := shader.MakeShaders("instancing.vs", "instancing.fs")
 
-	board := conways.CreateBoard(192921, num_x, num_y)
+	board := conways.CreateBoard(192921, numX, numY)
 
-	quadVAO, quadVBO, colorVBO, instanceVBO := makeBuffers(board, num_x, num_y)
+	quadVAO, quadVBO, colorVBO, instanceVBO := makeBuffers(board, numX, numY)
 	defer gl.DeleteVertexArrays(1, &quadVAO)
 	defer gl.DeleteVertexArrays(1, &quadVBO)
 	defer gl.DeleteVertexArrays(1, &colorVBO)
@@ -117,18 +117,19 @@ func main() {
 		gl.Clear(gl.COLOR_BUFFER_BIT)
 		gl.Clear(gl.DEPTH_BUFFER_BIT)
 
-		time.Sleep(1 * time.Millisecond)
-		
-		conways.UpdateBoard(board, num_x, num_y)
+		//time.Sleep(1 * time.Millisecond)
+
+		// Update board and VBO
+		conways.UpdateBoard(board, numX, numY)
 		gl.BindBuffer(gl.ARRAY_BUFFER, colorVBO)
 		gl.BufferData(gl.ARRAY_BUFFER, len(board) * 4,
 			unsafe.Pointer(&board[0]), gl.STATIC_DRAW)
 		gl.BindBuffer(gl.ARRAY_BUFFER, 0)
-		
-		// Draw
+
+		// Render cubes
 		ourShader.Use()
 		gl.BindVertexArray(quadVAO)
-		gl.DrawArraysInstanced(gl.TRIANGLES, 0, 6, int32(num_x * num_y))
+		gl.DrawArraysInstanced(gl.TRIANGLES, 0, 6, int32(numX * numY))
 		gl.BindVertexArray(0)
 
 		window.SwapBuffers()
