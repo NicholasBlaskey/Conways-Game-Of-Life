@@ -5,17 +5,17 @@ package main
 
 import(
 	"runtime"
-	"unsafe"
 	"fmt"
-//	"time"
+	"unsafe"
+	"time"
 	
 	"github.com/go-gl/gl/v4.1-core/gl"
 	"github.com/go-gl/glfw/v3.1/glfw"
-	"github.com/go-gl/mathgl/mgl32"
 	
 	"github.com/nicholasblaskey/go-learn-opengl/includes/shader"
 
-	"github.com/nicholasblaskey/Conways-Game-Of-Life/glfwBoilerplate"
+	"github.com/nicholasblaskey/Conways-Game-Of-Life/glfwBoilerplate"	
+	"github.com/nicholasblaskey/Conways-Game-Of-Life/conways"
 )
 
 func init() {
@@ -24,18 +24,9 @@ func init() {
 
 func makeBuffers(board []float32,
 	num_x, num_y int) (uint32, uint32, uint32, uint32) {
-	// Generate list of positions for our squares
-	translations := []mgl32.Vec2{}
-	xOffset := 1.0 / float32(num_x)
-	yOffset := 1.0 / float32(num_y)
-	for y := -num_y; y < num_y; y += 2 {
-		for x := -num_x; x < num_x; x += 2 {
-			translations = append(translations,
-				mgl32.Vec2{float32(x) / float32(num_x) + xOffset,
-					float32(y) / float32(num_y) + yOffset})
-		}
-	}
 
+	translations := conways.GetPositions(num_x, num_y)
+	
 	// Store these positions in a buffer
 	sizeOfVec2 := 4 * 2
 	var instanceVBO uint32
@@ -55,6 +46,8 @@ func makeBuffers(board []float32,
 	
 	
 	// Set up vertex data and buffers and config vertex attribs
+	xOffset := 1.0 / float32(num_x)
+	yOffset := 1.0 / float32(num_y)
 	Vertices := []float32{
 		// positions     
         -xOffset,  yOffset, 
@@ -94,9 +87,10 @@ func makeBuffers(board []float32,
 }
 
 func main() {
-	num_x := 5
-	num_y := 5
+	num_x := 1000
+	num_y := 1000
 	title := "Instancing method"
+	fmt.Println("Starting")
 	
 	window := glfwBoilerplate.InitGLFW(title,
 		800, 600, false)
@@ -104,37 +98,28 @@ func main() {
 	
 	ourShader := shader.MakeShaders("instancing.vs", "instancing.fs")
 
-	board := []float32{}
-	for i := 0; i < num_x * num_y; i++ {
-		board = append(board, 1)
-	}
-	board[0] = 0
-		
+	board := conways.CreateBoard(192921, num_x, num_y)
+
 	quadVAO, quadVBO, colorVBO, instanceVBO := makeBuffers(board, num_x, num_y)
 	defer gl.DeleteVertexArrays(1, &quadVAO)
 	defer gl.DeleteVertexArrays(1, &quadVBO)
 	defer gl.DeleteVertexArrays(1, &colorVBO)
 	defer gl.DeleteVertexArrays(1, &instanceVBO)
 	
-	// Program loop
 	lastTime := 0.0
 	numFrames := 0.0
-
 	//gl.PolygonMode(gl.FRONT_AND_BACK, gl.LINE)
-	for !window.ShouldClose() {		
+	for !window.ShouldClose() {
 		lastTime, numFrames = glfwBoilerplate.DisplayFrameRate(
 			window, title, numFrames, lastTime)	
 		
 		gl.ClearColor(0.1, 0.1, 0.1, 1.0)
 		gl.Clear(gl.COLOR_BUFFER_BIT)
 		gl.Clear(gl.DEPTH_BUFFER_BIT)
+
+		time.Sleep(1 * time.Millisecond)
 		
-		if board[0] == 0 {
-			board[0] = 1
-		} else {
-			board[0] = 0
-		}
-		fmt.Println(board[0])
+		conways.UpdateBoard(board, num_x, num_y)
 		gl.BindBuffer(gl.ARRAY_BUFFER, colorVBO)
 		gl.BufferData(gl.ARRAY_BUFFER, len(board) * 4,
 			unsafe.Pointer(&board[0]), gl.STATIC_DRAW)
