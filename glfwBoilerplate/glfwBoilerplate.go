@@ -10,28 +10,28 @@ import(
 func InitGLFW(windowTitle string,
 	width, height int, useDepthTest bool) *glfw.Window {
 	
-    if err := glfw.Init(); err != nil {
-        panic(err)
-    }
+	if err := glfw.Init(); err != nil {
+		panic(err)
+	}
 	
-    glfw.WindowHint(glfw.ContextVersionMajor, 4)
-    glfw.WindowHint(glfw.ContextVersionMinor, 1)
-    glfw.WindowHint(glfw.OpenGLProfile, glfw.OpenGLCoreProfile)
-    glfw.WindowHint(glfw.OpenGLForwardCompatible, glfw.True)
-    window, err := glfw.CreateWindow(
-        width, height, windowTitle, nil, nil)
-    if err != nil {
-        panic(err)
-    }
-    window.MakeContextCurrent()
+	glfw.WindowHint(glfw.ContextVersionMajor, 4)
+	glfw.WindowHint(glfw.ContextVersionMinor, 1)
+	glfw.WindowHint(glfw.OpenGLProfile, glfw.OpenGLCoreProfile)
+	glfw.WindowHint(glfw.OpenGLForwardCompatible, glfw.True)
+	window, err := glfw.CreateWindow(
+		width, height, windowTitle, nil, nil)
+	if err != nil {
+		panic(err)
+	}
+	window.MakeContextCurrent()
 
 	window.SetFramebufferSizeCallback(
 		glfw.FramebufferSizeCallback(framebuffer_size_callback))
 	window.SetKeyCallback(keyCallback)
 
-    if err := gl.Init(); err != nil {
-        panic(err)
-    }
+	if err := gl.Init(); err != nil {
+		panic(err)
+	}
 
 	if useDepthTest {
 		gl.Enable(gl.DEPTH_TEST)
