@@ -87,8 +87,8 @@ func makeBuffers(board []float32,
 }
 
 func main() {
-	numX := 1000
-	numY := 1000
+	numX := 500
+	numY := 500
 	title := "Instancing method"
 	fmt.Println("Starting")
 	

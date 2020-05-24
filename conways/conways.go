@@ -89,7 +89,7 @@ func handleEdgeCases(helperBoard [][]float32, board []float32,
 	
 	// Handle left and right columns
 	for i := 1; i < numY - 1; i += 1 {
-		updateCellEdgeCase(helperBoard, board, numX, numY, i, i)
+		updateCellEdgeCase(helperBoard, board, numX, numY, i, 0)
 		updateCellEdgeCase(helperBoard, board, numX, numY, i, numX - 1)
 	}
 }
