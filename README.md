@@ -1,5 +1,7 @@
 # Conways-Game-Of-Life
 
+![](example.gif)
+
 Conways game of life visually implemented in Go using opengl. Different techniques are used to try to optimize framerate.
 
 ### Instancing 
