@@ -23,9 +23,9 @@ func init() {
 }
 
 func makeBuffers(board []float32,
-	numX, num_y int) (uint32, uint32, uint32, uint32) {
+	numX, numY int) (uint32, uint32, uint32, uint32) {
 
-	translations := conways.GetPositions(numX, num_y)
+	translations := conways.GetPositions(numX, numY)
 	
 	// Store these positions in a buffer
 	sizeOfVec2 := 4 * 2
@@ -47,7 +47,7 @@ func makeBuffers(board []float32,
 	
 	// Set up vertex data and buffers and config vertex attribs
 	xOffset := 1.0 / float32(numX)
-	yOffset := 1.0 / float32(num_y)
+	yOffset := 1.0 / float32(numY)
 	Vertices := []float32{
 		// positions     
 		-xOffset,  yOffset, 
