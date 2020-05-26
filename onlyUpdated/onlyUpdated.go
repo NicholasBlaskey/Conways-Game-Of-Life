@@ -10,8 +10,6 @@ import(
 	
 	"github.com/go-gl/gl/v4.1-core/gl"
 	"github.com/go-gl/glfw/v3.1/glfw"
-	mgl "github.com/go-gl/mathgl/mgl32"
-
 	
 	"github.com/nicholasblaskey/go-learn-opengl/includes/shader"
 
@@ -20,22 +18,16 @@ import(
 )
 
 const tolerance = 0.00001
-const windowWidth = 800
-const windowHeight = 600
-
-// We need to use global variables for the framebuffer size callback
-var curBoard []float32
-var translations []mgl.Vec2
-var ourShader shader.Shader
-var framebuffer uint32
-var VAO uint32
+const windowWidth = 1920
+const windowHeight = 986
 
 func init() {
 	runtime.LockOSThread()
 }
 
-func makeBuffers(board []float32, numX, numY int) (uint32, uint32, uint32, uint32) {
-	
+func makeBuffers(board []float32, numX,
+	numY int) (uint32, uint32, uint32, uint32) {	
+
 	xOffset := 1.0 / float32(numX)
 	yOffset := 1.0 / float32(numY)
 	Vertices := []float32{
@@ -49,7 +41,7 @@ func makeBuffers(board []float32, numX, numY int) (uint32, uint32, uint32, uint3
 		xOffset,  yOffset, 
 	}
 	quadVertices := []float32{
-		// Positions      // texture coords
+		// Positions // texture coords
 		-1.0,  1.0,  0.0, 1.0,
         -1.0, -1.0,  0.0, 0.0,
          1.0, -1.0,  1.0, 0.0,
@@ -58,21 +50,17 @@ func makeBuffers(board []float32, numX, numY int) (uint32, uint32, uint32, uint3
          1.0, -1.0,  1.0, 0.0,
          1.0,  1.0,  1.0, 1.0,
 	}
-
-	
+	// TileVAO
 	var VAO, VBO uint32		
 	gl.GenVertexArrays(1, &VAO)
 	gl.GenBuffers(1, &VBO)
-	
 	gl.BindVertexArray(VAO)
 	gl.BindBuffer(gl.ARRAY_BUFFER, VBO)
 	gl.BufferData(gl.ARRAY_BUFFER, len(Vertices) * 4,
 		gl.Ptr(Vertices), gl.STATIC_DRAW)
-	
 	gl.EnableVertexAttribArray(0)	
 	gl.VertexAttribPointer(0, 2, gl.FLOAT, false, 2 * 4, gl.PtrOffset(0))
-
-	// quadVAO
+	// quadVAO (screen coords to render our framebuffer to)
 	var quadVAO, quadVBO uint32	
 	gl.GenVertexArrays(1, &quadVAO)
 	gl.GenBuffers(1, &quadVBO)
@@ -86,13 +74,12 @@ func makeBuffers(board []float32, numX, numY int) (uint32, uint32, uint32, uint3
 	gl.VertexAttribPointer(1, 2, gl.FLOAT, false, 4 * 4,
 		gl.PtrOffset(2 * 4))
 	gl.BindVertexArray(0)
-
 	
 	return VAO, VBO, quadVAO, quadVBO
 }
 
 func createFramebuffer() (uint32, uint32) {
-		// Frambuffer config
+	// Frambuffer config
 	var framebuffer uint32
 	gl.GenFramebuffers(1, &framebuffer)
 	gl.BindFramebuffer(gl.FRAMEBUFFER, framebuffer)
@@ -123,34 +110,29 @@ func createFramebuffer() (uint32, uint32) {
 }
 
 func main() {
-	numX := 500
-	numY := 500
+	numX := 100
+	numY := 100
 	title := "Only updated method"
 	fmt.Println("Starting")
 
 	window := glfwBoilerplate.InitGLFW(title,
-		int(windowWidth), int(windowHeight), false)
+		windowWidth, windowHeight, false)
 	defer glfw.Terminate()
-	// Need to use a custom resize callback to rerender fully after resizing
-	window.SetFramebufferSizeCallback(
-		glfw.FramebufferSizeCallback(framebuffer_size_callback))
 
-	ourShader = shader.MakeShaders("onlyUpdated.vs", "onlyUpdated.fs")
+	ourShader := shader.MakeShaders("onlyUpdated.vs", "onlyUpdated.fs")
 	screenShader := shader.MakeShaders("screen.vs", "screen.fs")
 	translations := conways.GetPositions(numX, numY)
 
-	curBoard = conways.CreateBoard(192921, numX, numY)
+	curBoard := conways.CreateBoard(192921, numX, numY)
 	prevBoard := make([]float32, len(curBoard))
 
-	var VBO, quadVAO, quadVBO uint32
-	VAO, VBO, quadVAO, quadVBO = makeBuffers(curBoard, numX, numY)
+	VAO, VBO, quadVAO, quadVBO := makeBuffers(curBoard, numX, numY)
 	defer gl.DeleteVertexArrays(1, &VAO)
 	defer gl.DeleteVertexArrays(1, &VBO)
 	defer gl.DeleteVertexArrays(1, &quadVAO)
 	defer gl.DeleteVertexArrays(1, &quadVBO)
 
-	var textureColorbuffer uint32
-	framebuffer, textureColorbuffer = createFramebuffer()
+	framebuffer, textureColorbuffer := createFramebuffer()
 	gl.BindFramebuffer(gl.FRAMEBUFFER, framebuffer)
 	gl.Enable(gl.DEPTH_TEST)
 	// Draw every vertex as the first iteration
@@ -162,15 +144,13 @@ func main() {
 		gl.DrawArrays(gl.TRIANGLES, 0, 6)
 		gl.BindVertexArray(0)
 	}
-
+	
 	// Update loop
 	lastTime := 0.0
 	numFrames := 0.0
 	for !window.ShouldClose() {
 		lastTime, numFrames = glfwBoilerplate.DisplayFrameRate(
-			window, title, numFrames, lastTime)	
-		glfw.PollEvents()
-		
+			window, title, numFrames, lastTime)			
 		// Update board
 		copy(prevBoard, curBoard)
 		conways.UpdateBoard(curBoard, numX, numY)
@@ -182,10 +162,8 @@ func main() {
 		
 		// Render only updated vertices to framebuffer
 		ourShader.Use()
-		numRenders := 0 
 		for i := 0; i < len(translations); i++ {
 			if math.Abs(float64(prevBoard[i] - curBoard[i])) > tolerance {
-				numRenders += 1
 				ourShader.SetVec2("aOffset", translations[i])
 				ourShader.SetFloat("fragColor", curBoard[i])
 				gl.BindVertexArray(VAO)
@@ -193,8 +171,7 @@ func main() {
 				gl.BindVertexArray(0)
 			}
 		}
-		fmt.Println(numRenders)
-
+		
 		// Bind back framebuffer for the screen
 		gl.BindFramebuffer(gl.FRAMEBUFFER, 0)
 		gl.Disable(gl.DEPTH_TEST)
@@ -212,20 +189,3 @@ func main() {
 	}
 }
 
-func framebuffer_size_callback(w *glfw.Window, width int, height int) {
-	
-	gl.BindFramebuffer(gl.FRAMEBUFFER, framebuffer)
-	gl.Enable(gl.DEPTH_TEST)
-	// Draw every vertex as the first iteration
-	ourShader.Use()
-	for i := 0; i < len(translations); i++ {
-		ourShader.SetVec2("aOffset", translations[i])
-		ourShader.SetFloat("fragColor", curBoard[i])
-		gl.BindVertexArray(VAO)
-		gl.DrawArrays(gl.TRIANGLES, 0, 6)
-		gl.BindVertexArray(0)
-	}
-
-	
-	gl.Viewport(0, 0, int32(width), int32(height))
-}

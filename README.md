@@ -30,7 +30,17 @@ One color only renders one color's squares and the other color's squares are ren
 
 ### Only updated tiles
 
-Only updated tiles keeps track of the board before and the board now and only needs to render the tiles that actually get updated.
+Only updated tiles keeps track of the board before and the board now and only needs to render the tiles that actually get updated. To do this I needed to utilize a framebuffer because just using the screen was running into issues. As a result of the framebuffer it was very diffucult to get resizing working properly so I didn't.
+
+There are two times listen. One is from the start and the second is 30 seconds later. This is relevant to rendering only updated tiles because at the start there is a 50-50 chance for tiles to be alive or dead. This causes a lot of updating to happen until it settles more. This causes a lot more time to be used at the start.
+
+~400-430fps at 25x25
+
+~250-350fps at 100x100
+
+~8-60fps at 500x500
+
+~1-13fps at 1000x1000
 
 ### Instancing 
 
@@ -43,6 +53,19 @@ Instancing takes advantage of using the Instancing feature in OpenGl to avoid CP
 ~265fps at 500x500
 
 ~80fps at a 1000x1000
+
+### Chunks
+
+This method will take a square size for example 4x4. We will then create 2^16 objects to render. 
+
+### Depth buffer
+
+This method tries to take advantage of the depth buffer. We only render squares once. Well twice for each square two for each color. Then we only update the depth buffer value and allow depth testing to do the rest.
+
+### Geometry shader
+
+This method uses a geometry shader to only need to render a pixel for each point then the geometry shader transforms this pixel into each square.
+
 
 
 
