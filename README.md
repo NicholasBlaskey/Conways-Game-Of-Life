@@ -56,7 +56,7 @@ Instancing takes advantage of using the Instancing feature in OpenGl to avoid CP
 
 ### Chunks
 
-This method will take a square size for example 4x4. We will then create 2^16 objects to render. 
+This method will take a chunk size (we are going to assume that numX divides this size for simplicity). We will then generate 2^chunkSize VAOs that represent each of the possible color combinations of the chunksize. We will then lookup the chunksize.
 
 ### Depth buffer
 
