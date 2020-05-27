@@ -27,32 +27,71 @@ func makeChunkBuffer(chunkSize, layout int, xOffset,
 	yOffset float32) (uint32, int) {
 
 	Vertices := []float32{}	
-	numVertices := 0
-	//prevColor := -1
-	for i := 0; i < chunkSize; i++ {
+	numVertices := 6
+
+	// First iteration we will always draw it
+	prevColor := float32(layout % 2)
+	layout /= 2
+
+	
+	Vertices = append(Vertices,
+		-xOffset,  yOffset, prevColor, 
+		//xOffset, -yOffset, prevColor,
+		-xOffset, -yOffset, prevColor,
+			
+		-xOffset,  yOffset, prevColor)//,
+		//xOffset, -yOffset, prevColor,
+		//xOffset,  yOffset, prevColor)
+	
+
+
+	for i := 1; i < chunkSize - 1; i++ {//chunkSize; i++ {
 		curColor := float32(layout % 2)
 		layout /= 2
 
-		numVertices += 6
-		Vertices = append(Vertices,
-			// Position   // Color
-			-xOffset + xOffset * float32(i * 2),  yOffset, curColor, 
-			xOffset + xOffset * float32(i * 2), -yOffset, curColor,
-			-xOffset + xOffset * float32(i * 2), -yOffset, curColor,
+		if curColor != prevColor {
+
 			
-			-xOffset + xOffset * float32(i * 2),  yOffset, curColor,
-			xOffset + xOffset * float32(i * 2), -yOffset, curColor,
-			xOffset + xOffset * float32(i * 2),  yOffset, curColor)
-		
-		// TODO lets implement vertex skipping later on
-		// Right now lets get it done
-		// Skip vertex if it is the same color
-		//if curColor != prevColor {
-		//	Vertices
-		//} 
-		//fmt.Printf("color=%d, layout=%d\n", curColor, layout)
+			Vertices = append(Vertices,
+				-xOffset + xOffset * float32((i - 1) * 2),  yOffset, curColor,
+				xOffset + xOffset * float32((i - 1) * 2), -yOffset, curColor,
+				xOffset + xOffset * float32((i - 1) * 2),  yOffset, curColor,
+
+				-xOffset + xOffset * float32(i * 2),  yOffset, curColor, 
+				xOffset + xOffset * float32(i * 2), -yOffset, curColor,
+				-xOffset + xOffset * float32(i * 2), -yOffset, curColor)
+			
+
+			/*
+Vertices = append(Vertices,
+				// Position   // Color
+				-xOffset + xOffset * float32(i * 2),  yOffset, curColor, 
+				xOffset + xOffset * float32(i * 2), -yOffset, curColor,
+				-xOffset + xOffset * float32(i * 2), -yOffset, curColor,
+				
+				-xOffset + xOffset * float32(i * 2),  yOffset, curColor,
+				xOffset + xOffset * float32(i * 2), -yOffset, curColor,
+				xOffset + xOffset * float32(i * 2),  yOffset, curColor)
+*/
+			numVertices += 6
+		}
+		prevColor = curColor
 	}
 
+	// Final iteration we will always draw it
+	curColor := float32(layout % 2)
+	layout /= 2
+	Vertices = append(Vertices,
+		//-xOffset + xOffset * float32((chunkSize - 1) * 2),  yOffset, curColor, 
+		xOffset + xOffset * float32((chunkSize - 1) * 2), -yOffset, curColor,
+		//-xOffset + xOffset * float32((chunkSize - 1) * 2), -yOffset, curColor,
+			
+		//-xOffset + xOffset * float32((chunkSize - 1) * 2),  yOffset, curColor,
+		xOffset + xOffset * float32((chunkSize - 1) * 2), -yOffset, curColor,
+		xOffset + xOffset * float32((chunkSize - 1) * 2),  yOffset, curColor)
+	numVertices += 3
+	
+	
 	var VAO, VBO uint32		
 	gl.GenVertexArrays(1, &VAO)
 	gl.GenBuffers(1, &VBO)
@@ -102,8 +141,8 @@ func getPositions(numX, numY, chunkSize int) []mgl.Vec2 {
 
 
 func main() {
-	numX := 100
-	numY := 100
+	numX := 5
+	numY := 5
 	chunkSize := 5
 	title := "Chunks method"
 	fmt.Println("Starting")
@@ -114,21 +153,12 @@ func main() {
 
 	ourShader := shader.MakeShaders("chunks.vs", "chunks.fs")
 	translations := getPositions(numX, numY, chunkSize)
-	board := conways.CreateBoard(192921, numX, numY)
-	
+	board := conways.CreateBoard(192921, numX, numY)	
 	VAOS, numVertices := makeBuffers(numX, numY, chunkSize)
 	
 	lastTime := 0.0
-	numFrames := 0.0
-
-	/*
-	powers := []float32{}
-	for i := 0; i < chunkSize; i++ {
-		powers = append(powers, float32(math.Pow(2, float64(i))))
-	}
-*/
-	
-	//gl.PolygonMode(gl.FRONT_AND_BACK, gl.LINE)
+	numFrames := 0.0	
+	gl.PolygonMode(gl.FRONT_AND_BACK, gl.LINE)
 	for !window.ShouldClose() {
 		lastTime, numFrames = glfwBoilerplate.DisplayFrameRate(
 			window, title, numFrames, lastTime)	
@@ -137,21 +167,17 @@ func main() {
 		gl.Clear(gl.COLOR_BUFFER_BIT)
 		gl.Clear(gl.DEPTH_BUFFER_BIT)
 
-		// Update board and VBO
+		// Update board
 		conways.UpdateBoard(board, numX, numY)
-
 		ourShader.Use()
+
+		// Render VAO
 		for i := 0; i < len(translations); i++ {
 			ourShader.SetVec2("aOffset", translations[i])
-
-			/*
-			indexOfVAO := 0
-			for j := 0; j < chunkSize; j++ {
-				indexOfVAO += int(board[i * chunkSize + j] * powers[j])
-			}
-			fmt.Println(indexOfVAO)
-            */
 			
+			// We need to hard code the indexOfVAO calculation
+			// Making it work for any chunk size causes too much of a
+			// preformance hit. Even when storing powers of 2.
 			indexOfVAO := int(board[i * 5] + board[i * 5 + 1] * 2 +
 				board[i * 5 + 2] * 4 + board[i * 5 + 3] * 8 +
 				board[i * 5 + 4] * 16)
