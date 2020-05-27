@@ -1,8 +1,9 @@
 #version 410 core
 layout (location = 0) in vec2 aPos;
+layout (location = 1) in float fragColor;
 
 uniform vec2 aOffset;
-uniform float fragColor;
+//uniform float fragColor;
 
 out float fColor;
 

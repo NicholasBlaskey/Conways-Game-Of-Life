@@ -7,7 +7,7 @@ import(
 	"runtime"
 	"fmt"
 	"math"
-//	"time"
+	"time"
 	
 	"github.com/go-gl/gl/v4.1-core/gl"
 	"github.com/go-gl/glfw/v3.1/glfw"
@@ -22,39 +22,41 @@ func init() {
 	runtime.LockOSThread()
 }
 
-func makeChunkBuffer(chunkSize, layout int,xOffset, yOffset float32) (uint32, int) {
+func makeChunkBuffer(chunkSize, layout int, xOffset,
+	yOffset float32) (uint32, int) {
 
 	fmt.Println(xOffset + yOffset)
 	
 	Vertices := []float32{}
 	fmt.Println(Vertices)
-
 	fmt.Println(layout)
+
+	numVertices := 0
 	//prevColor := -1
 	for i := 0; i < chunkSize; i++ {
-		curColor := layout % 2
+		curColor := float32(layout % 2)
 		layout /= 2
 
+		numVertices += 6
+		Vertices = append(Vertices,
+			// Position   // Color
+			-xOffset + xOffset * float32(i * 2),  yOffset, curColor, 
+			xOffset + xOffset * float32(i * 2), -yOffset, curColor,
+			-xOffset + xOffset * float32(i * 2), -yOffset, curColor,
+			
+			-xOffset + xOffset * float32(i * 2),  yOffset, curColor,
+			xOffset + xOffset * float32(i * 2), -yOffset, curColor,
+			xOffset + xOffset * float32(i * 2),  yOffset, curColor)
+		
 		// TODO lets implement vertex skipping later on
 		// Right now lets get it done
 		// Skip vertex if it is the same color
 		//if curColor != prevColor {
 		//	Vertices
 		//} 
-		//fmt.Printf("color=%d, layout=%d\n", color, layout)
+		fmt.Printf("color=%d, layout=%d\n", curColor, layout)
 	}
 
-	/*
-	Vertices := []float32{
-		// positions     
-		-xOffset,  yOffset, 
-		xOffset, -yOffset,
-		-xOffset, -yOffset, 
-
-		-xOffset,  yOffset, 
-		xOffset, -yOffset, 
-		xOffset,  yOffset, 
-	}
 	var VAO, VBO uint32		
 	gl.GenVertexArrays(1, &VAO)
 	gl.GenBuffers(1, &VBO)
@@ -62,14 +64,14 @@ func makeChunkBuffer(chunkSize, layout int,xOffset, yOffset float32) (uint32, in
 	gl.BindVertexArray(VAO)
 	gl.BindBuffer(gl.ARRAY_BUFFER, VBO)
 	gl.BufferData(gl.ARRAY_BUFFER, len(Vertices) * 4,
-		gl.Ptr(Vertices), gl.STATIC_DRAW)
-	
+		gl.Ptr(Vertices), gl.STATIC_DRAW)	
 	gl.EnableVertexAttribArray(0)	
-	gl.VertexAttribPointer(0, 2, gl.FLOAT, false, 2 * 4, gl.PtrOffset(0))
-	
-*/
-
-	return 3, 3//VAO, VBO
+	gl.VertexAttribPointer(0, 2, gl.FLOAT, false, 3 * 4, gl.PtrOffset(0))
+	gl.EnableVertexAttribArray(1)
+	gl.VertexAttribPointer(1, 1, gl.FLOAT, false, 3 * 4,
+		gl.PtrOffset(2 * 4))
+		
+	return VAO, numVertices
 
 }
 
@@ -88,9 +90,9 @@ func makeBuffers(numX, numY, chunkSize int) ([]uint32, []int) {
 }
 
 func main() {
-	numX := 100
-	numY := 100
-	chunkSize := 5
+	numX := 25
+	numY := 25
+	chunkSize := 10
 	title := "Chunks method"
 	fmt.Println("Starting")
 	
@@ -104,12 +106,7 @@ func main() {
 	fmt.Println(ourShader)
 	fmt.Println(translations)
 	
-	VAO, VBO := makeBuffers(numX, numY, chunkSize)
-//	defer gl.DeleteVertexArrays(1, &VAO)
-//	defer gl.DeleteVertexArrays(1, &VBO)
-
-	fmt.Println(VBO)
-	fmt.Println(VAO)
+	VAOS, numVertices := makeBuffers(numX, numY, chunkSize)
 	
 	lastTime := 0.0
 	numFrames := 0.0
@@ -127,17 +124,21 @@ func main() {
 		// Update board and VBO
 		conways.UpdateBoard(board, numX, numY)
 
-		// Render cubes
-		/*
 		ourShader.Use()
-		for i := 0; i < len(translations); i++ {
-			ourShader.SetVec2("aOffset", translations[i])
-			ourShader.SetFloat("fragColor", board[i])
-			gl.BindVertexArray(VAO)
-			gl.DrawArrays(gl.TRIANGLES, 0, 6)
+		for i := 0; i < len(VAOS); i++ {
+			gl.ClearColor(0.3, 0.5, 0.3, 1.0)
+			gl.Clear(gl.COLOR_BUFFER_BIT)
+			gl.Clear(gl.DEPTH_BUFFER_BIT)
+
+			
+			gl.BindVertexArray(VAOS[i])
+			gl.DrawArrays(gl.TRIANGLES, 0, int32(numVertices[i]))
 			gl.BindVertexArray(0)
+
+			//fmt.Printf("len(VAOS)=%d", len(VAOS))
+			window.SwapBuffers()
+			time.Sleep(10 * time.Millisecond)
 		}
-*/
 		
 		window.SwapBuffers()
 		glfw.PollEvents()
