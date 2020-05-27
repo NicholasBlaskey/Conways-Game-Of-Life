@@ -11,6 +11,7 @@ import(
 	
 	"github.com/go-gl/gl/v4.1-core/gl"
 	"github.com/go-gl/glfw/v3.1/glfw"
+	mgl "github.com/go-gl/mathgl/mgl32"
 	
 	"github.com/nicholasblaskey/go-learn-opengl/includes/shader"
 
@@ -25,12 +26,7 @@ func init() {
 func makeChunkBuffer(chunkSize, layout int, xOffset,
 	yOffset float32) (uint32, int) {
 
-	fmt.Println(xOffset + yOffset)
-	
-	Vertices := []float32{}
-	fmt.Println(Vertices)
-	fmt.Println(layout)
-
+	Vertices := []float32{}	
 	numVertices := 0
 	//prevColor := -1
 	for i := 0; i < chunkSize; i++ {
@@ -54,7 +50,7 @@ func makeChunkBuffer(chunkSize, layout int, xOffset,
 		//if curColor != prevColor {
 		//	Vertices
 		//} 
-		fmt.Printf("color=%d, layout=%d\n", curColor, layout)
+		//fmt.Printf("color=%d, layout=%d\n", curColor, layout)
 	}
 
 	var VAO, VBO uint32		
@@ -89,10 +85,26 @@ func makeBuffers(numX, numY, chunkSize int) ([]uint32, []int) {
 	return VAOS, sizes
 }
 
+func getPositions(numX, numY, chunkSize int) []mgl.Vec2 {
+	translations := []mgl.Vec2{}
+	xOffset := 1.0 / float32(numX)
+	yOffset := 1.0 / float32(numY)
+	for y := -numY; y < numY; y += 2 {
+		for x := -numX; x < numX; x += 2 * chunkSize {
+			translations = append(translations,
+				mgl.Vec2{float32(x) / float32(numX) + xOffset,
+					float32(y) / float32(numY) + yOffset})
+		}
+	}
+
+	return translations
+}
+
+
 func main() {
-	numX := 25
-	numY := 25
-	chunkSize := 10
+	numX := 100
+	numY := 100
+	chunkSize := 5
 	title := "Chunks method"
 	fmt.Println("Starting")
 	
@@ -101,15 +113,21 @@ func main() {
 	defer glfw.Terminate()
 
 	ourShader := shader.MakeShaders("chunks.vs", "chunks.fs")
-	translations := conways.GetPositions(numX, numY)
+	translations := getPositions(numX, numY, chunkSize)
 	board := conways.CreateBoard(192921, numX, numY)
-	fmt.Println(ourShader)
-	fmt.Println(translations)
 	
 	VAOS, numVertices := makeBuffers(numX, numY, chunkSize)
 	
 	lastTime := 0.0
 	numFrames := 0.0
+
+	/*
+	powers := []float32{}
+	for i := 0; i < chunkSize; i++ {
+		powers = append(powers, float32(math.Pow(2, float64(i))))
+	}
+*/
+	
 	//gl.PolygonMode(gl.FRONT_AND_BACK, gl.LINE)
 	for !window.ShouldClose() {
 		lastTime, numFrames = glfwBoilerplate.DisplayFrameRate(
@@ -119,26 +137,30 @@ func main() {
 		gl.Clear(gl.COLOR_BUFFER_BIT)
 		gl.Clear(gl.DEPTH_BUFFER_BIT)
 
-		//time.Sleep(1 * time.Millisecond)
-
 		// Update board and VBO
 		conways.UpdateBoard(board, numX, numY)
 
 		ourShader.Use()
-		for i := 0; i < len(VAOS); i++ {
-			gl.ClearColor(0.3, 0.5, 0.3, 1.0)
-			gl.Clear(gl.COLOR_BUFFER_BIT)
-			gl.Clear(gl.DEPTH_BUFFER_BIT)
+		for i := 0; i < len(translations); i++ {
+			ourShader.SetVec2("aOffset", translations[i])
 
+			/*
+			indexOfVAO := 0
+			for j := 0; j < chunkSize; j++ {
+				indexOfVAO += int(board[i * chunkSize + j] * powers[j])
+			}
+			fmt.Println(indexOfVAO)
+            */
 			
-			gl.BindVertexArray(VAOS[i])
-			gl.DrawArrays(gl.TRIANGLES, 0, int32(numVertices[i]))
+			indexOfVAO := int(board[i * 5] + board[i * 5 + 1] * 2 +
+				board[i * 5 + 2] * 4 + board[i * 5 + 3] * 8 +
+				board[i * 5 + 4] * 16)
+			gl.BindVertexArray(VAOS[indexOfVAO])
+			gl.DrawArrays(gl.TRIANGLES, 0, int32(numVertices[indexOfVAO]))
 			gl.BindVertexArray(0)
-
-			//fmt.Printf("len(VAOS)=%d", len(VAOS))
-			window.SwapBuffers()
-			time.Sleep(10 * time.Millisecond)
 		}
+
+		time.Sleep(1 * time.Millisecond)
 		
 		window.SwapBuffers()
 		glfw.PollEvents()
