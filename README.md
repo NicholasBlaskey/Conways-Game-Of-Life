@@ -32,7 +32,7 @@ One color only renders one color's squares and the other color's squares are ren
 
 Only updated tiles keeps track of the board before and the board now and only needs to render the tiles that actually get updated. To do this I needed to utilize a framebuffer because just using the screen was running into issues. As a result of the framebuffer it was very diffucult to get resizing working properly so I didn't.
 
-There are two times listen. One is from the start and the second is 30 seconds later. This is relevant to rendering only updated tiles because at the start there is a 50-50 chance for tiles to be alive or dead. This causes a lot of updating to happen until it settles more. This causes a lot more time to be used at the start.
+There are two fps readings measured. One is from the start and the second is 30 seconds later. This is relevant to rendering only updated tiles because at the start there is a 50-50 chance for tiles to be alive or dead. This causes a lot of updating to happen until it settles more. This causes a lot more time to be used at the start.
 
 ~400-430fps at 25x25
 
@@ -52,11 +52,23 @@ Instancing takes advantage of using the Instancing feature in OpenGl to avoid CP
 
 ~265fps at 500x500
 
-~80fps at a 1000x1000
+~80fps at 1000x1000
 
 ### Chunks
 
 This method will take a chunk size (we are going to assume that numX divides this size for simplicity). We will then generate 2^chunkSize VAOs that represent each of the possible color combinations of the chunksize. We will then lookup the chunksize.
+
+~650fps at 25x25
+
+~325fps at 100x100
+
+~21fps at 500x500
+
+~6fps at 1000x1000 
+
+### One object
+
+This method creates a single object of vertices and only the color attrib is updated each iteration. Only one rendering call is needed but a lot more vertices are stored.
 
 ### Depth buffer
 

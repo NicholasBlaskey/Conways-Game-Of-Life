@@ -7,7 +7,7 @@ import(
 	"runtime"
 	"fmt"
 	"math"
-	"time"
+	//"time"
 	
 	"github.com/go-gl/gl/v4.1-core/gl"
 	"github.com/go-gl/glfw/v3.1/glfw"
@@ -26,28 +26,20 @@ func init() {
 func makeChunkBuffer(chunkSize, layout int, xOffset,
 	yOffset float32) (uint32, int) {
 
-	fmt.Printf("\nGening layout %d\n", layout)
-	
+	// First iteration we will always draw it
 	Vertices := []float32{}	
 	numVertices := 2
-
-	// First iteration we will always draw it
 	prevColor := float32(layout % 2)
-	
+	prevColorIndex := 0
 	Vertices = append(Vertices,
 		-xOffset,  -yOffset, prevColor, // Bot left 
 		-xOffset, yOffset, prevColor)   // Top left	
-	prevColorIndex := 0
-	fmt.Printf("first layout=%d,prevColor=%f\n", layout, prevColor)
-	for i := 1; i < chunkSize - 1; i++ { 
+
+	for i := 1; i < chunkSize; i++ { 
 		layout /= 2
 		curColor := float32(layout % 2)
-
-		//fmt.Println(i)
-		fmt.Printf("layout=%d,curColor=%f,prevColor=%f\n", layout, curColor, prevColor)
 		
 		if curColor != prevColor {
-			fmt.Printf("Swapping at i=%d\n", i)
 			Vertices = append(Vertices,
 				// Finish previous square
 				// Bot right of first triangle
@@ -55,35 +47,31 @@ func makeChunkBuffer(chunkSize, layout int, xOffset,
 				
 				xOffset + xOffset * float32((i - 1) * 2), -yOffset, prevColor,
 				xOffset + xOffset * float32((i - 1) * 2), yOffset, prevColor,
-				-xOffset + xOffset * float32(prevColorIndex * 2), yOffset, prevColor,
-
-				// Start new square
+				-xOffset + xOffset * float32(prevColorIndex * 2), yOffset, prevColor)
+			
+			// Start new square
+			Vertices = append(Vertices,
 				-xOffset + xOffset * float32(i * 2),  yOffset, curColor,
-				-xOffset + xOffset * float32(i * 2),  -yOffset, curColor,
-			)
-				
-			prevColorIndex = i
+				-xOffset + xOffset * float32(i * 2),  -yOffset, curColor)
 			numVertices += 6
+			prevColorIndex = i
 		}
 		prevColor = curColor
 	}
 
-	// Final iteration we will always draw it
-	curColor := float32(layout % 2)
-	layout /= 2
+	// Final iteration we will always finish the square
 	Vertices = append(Vertices,
 		xOffset + xOffset * float32((chunkSize - 1) * 2), yOffset, prevColor,
 		// Top right most
-		xOffset + xOffset * float32((chunkSize - 1) * 2), yOffset, curColor, 
+		xOffset + xOffset * float32((chunkSize - 1) * 2), yOffset, prevColor, 
 		// Bot right most
-		xOffset + xOffset * float32((chunkSize - 1) * 2), -yOffset, curColor,
+		xOffset + xOffset * float32((chunkSize - 1) * 2), -yOffset, prevColor,
 		// Bot left
-		-xOffset + xOffset * float32(prevColorIndex * 2), -yOffset, curColor,
+		-xOffset + xOffset * float32(prevColorIndex * 2), -yOffset, prevColor,
 	)
 	numVertices += 4
 	
-	
-	var VAO, VBO uint32		
+		var VAO, VBO uint32		
 	gl.GenVertexArrays(1, &VAO)
 	gl.GenBuffers(1, &VBO)
 	
@@ -126,20 +114,16 @@ func getPositions(numX, numY, chunkSize int) []mgl.Vec2 {
 					float32(y) / float32(numY) + yOffset})
 		}
 	}
-
 	return translations
 }
 
 
 func main() {
-	numX := 35
-	numY := 35
+	numX := 1000
+	numY := 1000
 	chunkSize := 5
 	title := "Chunks method"
 	fmt.Println("Starting")
-
-	//makeChunkBuffer(5, 6, 1.0 / float32(numX), 1.0 / float32(numY))
-	//panic("damn")
 	
 	window := glfwBoilerplate.InitGLFW(title,
 		800, 600, false)
@@ -165,13 +149,10 @@ func main() {
 		conways.UpdateBoard(board, numX, numY)
 		ourShader.Use()
 
-		/*
+		
+		
 		// Render VAO
 		for i := 0; i < len(translations); i++ {
-		//for i := len(translations) - 2; i < len(translations); i++ {
-			//translations[i][0] += 0.01
-			//translations[i][1] += 0.01
-			
 			ourShader.SetVec2("aOffset", translations[i])
 			
 			// We need to hard code the indexOfVAO calculation
@@ -184,27 +165,9 @@ func main() {
 			gl.DrawArrays(gl.TRIANGLES, 0, int32(numVertices[indexOfVAO]))
 			gl.BindVertexArray(0)
 		}
-*/
-
-		for i := 0; i < len(translations); i++ {
-			translations[0][1] = 1
-			for j := 0; j < len(numVertices); j++ {
-				ourShader.Use()
-				translations[0][1] += float32(-2) / 35.0
-
-				ourShader.SetVec2("aOffset", translations[0])
-				
-				gl.BindVertexArray(VAOS[j])
-				gl.DrawArrays(gl.TRIANGLES, 0, int32(numVertices[j]))
-				gl.BindVertexArray(0)
-			}
-			break
-		}
 		
 		window.SwapBuffers()
 		glfw.PollEvents()
-
-		time.Sleep(1 * time.Millisecond)
 	}
 }
 
