@@ -70,6 +70,14 @@ This method will take a chunk size (we are going to assume that numX divides thi
 
 This method creates a single object of vertices and only the color attrib is updated each iteration. Only one rendering call is needed but a lot more vertices are stored.
 
+~725fps at 25x25
+
+~600fps at 100x100
+
+~175fps at 500x500
+
+~56fps at 1000x1000
+
 ### Depth buffer
 
 This method tries to take advantage of the depth buffer. We only render squares once. Well twice for each square two for each color. Then we only update the depth buffer value and allow depth testing to do the rest.
@@ -77,9 +85,3 @@ This method tries to take advantage of the depth buffer. We only render squares 
 ### Geometry shader
 
 This method uses a geometry shader to only need to render a pixel for each point then the geometry shader transforms this pixel into each square.
-
-
-
-
-
-

@@ -147,9 +147,7 @@ func main() {
 
 		// Update board
 		conways.UpdateBoard(board, numX, numY)
-		ourShader.Use()
-
-		
+		ourShader.Use()		
 		
 		// Render VAO
 		for i := 0; i < len(translations); i++ {
