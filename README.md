@@ -4,16 +4,16 @@
 
 Conways game of life visually implemented in Go using opengl. Different techniques are used to try to optimize framerate.
 
-| Method        | fps at 25x25    | fps at 100x100 | fps at 500x500 | fps at 1000x1000 |
-| ------------- | ------------- | -----: |
-| Naive         |  500  | 80  | 3.7 | 0.8 |
-| One Color     |  625 | 600 | 78 | 11 |
-| Only Updated Tiles* | 400-430 | 250-350 | 8-60 | 1-13|
-| Instancing | 600 | 585 | 265 | 80 |
-| One Color Instancing | 725 | 700 | 300 | 110 |
-| Chunks | 650 | 325 | 21 | 6 |
-| One Object | 725 | 600 | 175 | 56 |
-| Geometry Shader | 675 | 625 | 225 | 100 |
+| Method               | fps at 25x25 | fps at 100x100 | fps at 500x500 | fps at 1000x1000 |
+| -------------------- | -----: | -----: | -----: | -----: |
+| Naive                |  500            | 80  | 3.7 | 0.8 |
+| One Color            |  625          | 600 | 78 | 11 |
+| Only Updated Tiles*  | 400-430       | 250-350 | 8-60 | 1-13|
+| Instancing           | 600           | 585 | 265 | 80 |
+| One Color Instancing | 725           | 700 | 300 | 110 |
+| Chunks               | 650 | 325 | 21 | 6 |
+| One Object           | 725 | 600 | 175 | 56 |
+| Geometry Shader      | 675 | 625 | 225 | 100 |
 
 (*Two records are shown for start framerate and the framerate after 30 seconds) 
 
