@@ -1,20 +1,17 @@
-// Translated from
-// https://github.com/JoeyDeVries/LearnOpenGL/blob/master/src/2.lighting/1.colors/colors.cpp
-
 package main
 
-import(
-	"runtime"
+import (
 	"fmt"
 	"math"
-	
+	"runtime"
+
 	"github.com/go-gl/gl/v4.1-core/gl"
 	"github.com/go-gl/glfw/v3.1/glfw"
-	
+
 	"github.com/nicholasblaskey/go-learn-opengl/includes/shader"
 
-	"github.com/nicholasblaskey/Conways-Game-Of-Life/glfwBoilerplate"	
 	"github.com/nicholasblaskey/Conways-Game-Of-Life/conways"
+	"github.com/nicholasblaskey/Conways-Game-Of-Life/glfwBoilerplate"
 )
 
 const tolerance = 0.00001
@@ -26,55 +23,55 @@ func init() {
 }
 
 func makeBuffers(board []float32, numX,
-	numY int) (uint32, uint32, uint32, uint32) {	
+	numY int) (uint32, uint32, uint32, uint32) {
 
 	xOffset := 1.0 / float32(numX)
 	yOffset := 1.0 / float32(numY)
 	Vertices := []float32{
-		// positions     
-		-xOffset,  yOffset, 
+		// positions
+		-xOffset, yOffset,
 		xOffset, -yOffset,
-		-xOffset, -yOffset, 
+		-xOffset, -yOffset,
 
-		-xOffset,  yOffset, 
-		xOffset, -yOffset, 
-		xOffset,  yOffset, 
+		-xOffset, yOffset,
+		xOffset, -yOffset,
+		xOffset, yOffset,
 	}
 	quadVertices := []float32{
 		// Positions // texture coords
-		-1.0,  1.0,  0.0, 1.0,
-        -1.0, -1.0,  0.0, 0.0,
-         1.0, -1.0,  1.0, 0.0,
+		-1.0, 1.0, 0.0, 1.0,
+		-1.0, -1.0, 0.0, 0.0,
+		1.0, -1.0, 1.0, 0.0,
 
-        -1.0,  1.0,  0.0, 1.0,
-         1.0, -1.0,  1.0, 0.0,
-         1.0,  1.0,  1.0, 1.0,
+		-1.0, 1.0, 0.0, 1.0,
+		1.0, -1.0, 1.0, 0.0,
+		1.0, 1.0, 1.0, 1.0,
 	}
 	// TileVAO
-	var VAO, VBO uint32		
+	var VAO, VBO uint32
 	gl.GenVertexArrays(1, &VAO)
 	gl.GenBuffers(1, &VBO)
 	gl.BindVertexArray(VAO)
 	gl.BindBuffer(gl.ARRAY_BUFFER, VBO)
-	gl.BufferData(gl.ARRAY_BUFFER, len(Vertices) * 4,
+	gl.BufferData(gl.ARRAY_BUFFER, len(Vertices)*4,
 		gl.Ptr(Vertices), gl.STATIC_DRAW)
-	gl.EnableVertexAttribArray(0)	
-	gl.VertexAttribPointer(0, 2, gl.FLOAT, false, 2 * 4, gl.PtrOffset(0))
+	gl.EnableVertexAttribArray(0)
+	gl.VertexAttribPointer(0, 2, gl.FLOAT, false, 2*4, gl.PtrOffset(0))
 	// quadVAO (screen coords to render our framebuffer to)
-	var quadVAO, quadVBO uint32	
+	var quadVAO, quadVBO uint32
 	gl.GenVertexArrays(1, &quadVAO)
 	gl.GenBuffers(1, &quadVBO)
 	gl.BindVertexArray(quadVAO)
 	gl.BindBuffer(gl.ARRAY_BUFFER, quadVBO)
-	gl.BufferData(gl.ARRAY_BUFFER, len(quadVertices) * 4,
+	gl.BufferData(gl.ARRAY_BUFFER, len(quadVertices)*4,
 		gl.Ptr(quadVertices), gl.STATIC_DRAW)
-	gl.EnableVertexAttribArray(0)	
-	gl.VertexAttribPointer(0, 2, gl.FLOAT, false, 4 * 4, gl.PtrOffset(0))
+	gl.EnableVertexAttribArray(0)
+	gl.VertexAttribPointer(0, 2, gl.FLOAT, false, 4*4, gl.PtrOffset(0))
 	gl.EnableVertexAttribArray(1)
-	gl.VertexAttribPointer(1, 2, gl.FLOAT, false, 4 * 4,
-		gl.PtrOffset(2 * 4))
+	gl.VertexAttribPointer(1, 2, gl.FLOAT, false, 4*4,
+		gl.PtrOffset(2*4))
 	gl.BindVertexArray(0)
-	
+
 	return VAO, VBO, quadVAO, quadVBO
 }
 
@@ -144,26 +141,26 @@ func main() {
 		gl.DrawArrays(gl.TRIANGLES, 0, 6)
 		gl.BindVertexArray(0)
 	}
-	
+
 	// Update loop
 	lastTime := 0.0
 	numFrames := 0.0
 	for !window.ShouldClose() {
 		lastTime, numFrames = glfwBoilerplate.DisplayFrameRate(
-			window, title, numFrames, lastTime)			
+			window, title, numFrames, lastTime)
 		// Update board
 		copy(prevBoard, curBoard)
 		conways.UpdateBoard(curBoard, numX, numY)
-		
+
 		// Bind frame buffer
 		gl.BindFramebuffer(gl.FRAMEBUFFER, framebuffer)
 		gl.Enable(gl.DEPTH_TEST)
 		gl.Clear(gl.DEPTH_BUFFER_BIT)
-		
+
 		// Render only updated vertices to framebuffer
 		ourShader.Use()
 		for i := 0; i < len(translations); i++ {
-			if math.Abs(float64(prevBoard[i] - curBoard[i])) > tolerance {
+			if math.Abs(float64(prevBoard[i]-curBoard[i])) > tolerance {
 				ourShader.SetVec2("aOffset", translations[i])
 				ourShader.SetFloat("fragColor", curBoard[i])
 				gl.BindVertexArray(VAO)
@@ -171,7 +168,7 @@ func main() {
 				gl.BindVertexArray(0)
 			}
 		}
-		
+
 		// Bind back framebuffer for the screen
 		gl.BindFramebuffer(gl.FRAMEBUFFER, 0)
 		gl.Disable(gl.DEPTH_TEST)
@@ -183,9 +180,8 @@ func main() {
 		gl.BindVertexArray(quadVAO)
 		gl.BindTexture(gl.TEXTURE_2D, textureColorbuffer)
 		gl.DrawArrays(gl.TRIANGLES, 0, 6)
-		
+
 		window.SwapBuffers()
 		glfw.PollEvents()
 	}
 }
-

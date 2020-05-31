@@ -1,20 +1,18 @@
 package main
 
-import(
-	"runtime"
+import (
 	"fmt"
+	"runtime"
 	"unsafe"
-//	"time"
-	
+
 	"github.com/go-gl/gl/v4.1-core/gl"
 	"github.com/go-gl/glfw/v3.1/glfw"
 	mgl "github.com/go-gl/mathgl/mgl32"
 
-	
 	"github.com/nicholasblaskey/go-learn-opengl/includes/shader"
 
-	"github.com/nicholasblaskey/Conways-Game-Of-Life/glfwBoilerplate"	
 	"github.com/nicholasblaskey/Conways-Game-Of-Life/conways"
+	"github.com/nicholasblaskey/Conways-Game-Of-Life/glfwBoilerplate"
 )
 
 func init() {
@@ -25,13 +23,13 @@ func makeBuffers(board []float32,
 	numX, numY int) ([]mgl.Vec2, uint32, uint32, uint32) {
 
 	translations := conways.GetPositions(numX, numY)
-	
+
 	// Store these positions in a buffer
 	sizeOfVec2 := 4 * 2
 	var instanceVBO uint32
 	gl.GenBuffers(1, &instanceVBO)
 	gl.BindBuffer(gl.ARRAY_BUFFER, instanceVBO)
-	gl.BufferData(gl.ARRAY_BUFFER, len(translations) * sizeOfVec2,
+	gl.BufferData(gl.ARRAY_BUFFER, len(translations)*sizeOfVec2,
 		unsafe.Pointer(&translations[0]), gl.STATIC_DRAW)
 	gl.BindBuffer(gl.ARRAY_BUFFER, 0)
 
@@ -39,24 +37,24 @@ func makeBuffers(board []float32,
 	xOffset := 1.0 / float32(numX)
 	yOffset := 1.0 / float32(numY)
 	Vertices := []float32{
-		// positions     
-		-xOffset,  yOffset, 
+		// positions
+		-xOffset, yOffset,
 		xOffset, -yOffset,
-		-xOffset, -yOffset, 
+		-xOffset, -yOffset,
 
-		-xOffset,  yOffset, 
-		xOffset, -yOffset, 
-		xOffset,  yOffset, 
+		-xOffset, yOffset,
+		xOffset, -yOffset,
+		xOffset, yOffset,
 	}
-	var quadVBO, quadVAO uint32		
+	var quadVBO, quadVAO uint32
 	gl.GenVertexArrays(1, &quadVAO)
 	gl.GenBuffers(1, &quadVBO)
 	gl.BindVertexArray(quadVAO)
 	gl.BindBuffer(gl.ARRAY_BUFFER, quadVBO)
-	gl.BufferData(gl.ARRAY_BUFFER, len(Vertices) * 4,
+	gl.BufferData(gl.ARRAY_BUFFER, len(Vertices)*4,
 		gl.Ptr(Vertices), gl.STATIC_DRAW)
-	gl.EnableVertexAttribArray(0)	
-	gl.VertexAttribPointer(0, 2, gl.FLOAT, false, 2 * 4, gl.PtrOffset(0))
+	gl.EnableVertexAttribArray(0)
+	gl.VertexAttribPointer(0, 2, gl.FLOAT, false, 2*4, gl.PtrOffset(0))
 	// Also set instance data
 	gl.EnableVertexAttribArray(1)
 	gl.BindBuffer(gl.ARRAY_BUFFER, instanceVBO)
@@ -64,7 +62,7 @@ func makeBuffers(board []float32,
 		gl.PtrOffset(0))
 	gl.BindBuffer(gl.ARRAY_BUFFER, 0)
 	gl.VertexAttribDivisor(1, 1)
-	
+
 	return translations, quadVAO, quadVBO, instanceVBO
 }
 
@@ -73,11 +71,11 @@ func main() {
 	numY := 1000
 	title := "One Color Instancing method"
 	fmt.Println("Starting")
-	
+
 	window := glfwBoilerplate.InitGLFW(title,
 		800, 600, false)
 	defer glfw.Terminate()
-	
+
 	ourShader := shader.MakeShaders("oneColorInstancing.vs",
 		"oneColorInstancing.fs")
 
@@ -86,14 +84,14 @@ func main() {
 	defer gl.DeleteVertexArrays(1, &quadVAO)
 	defer gl.DeleteVertexArrays(1, &quadVBO)
 	defer gl.DeleteVertexArrays(1, &instanceVBO)
-	
+
 	lastTime := 0.0
 	numFrames := 0.0
 	//gl.PolygonMode(gl.FRONT_AND_BACK, gl.LINE)
 	for !window.ShouldClose() {
 		lastTime, numFrames = glfwBoilerplate.DisplayFrameRate(
-			window, title, numFrames, lastTime)	
-		
+			window, title, numFrames, lastTime)
+
 		gl.ClearColor(0.0, 0.0, 0.0, 1.0)
 		gl.Clear(gl.COLOR_BUFFER_BIT)
 		gl.Clear(gl.DEPTH_BUFFER_BIT)
@@ -107,7 +105,7 @@ func main() {
 			}
 		}
 		gl.BindBuffer(gl.ARRAY_BUFFER, instanceVBO)
-		gl.BufferData(gl.ARRAY_BUFFER, len(positions) * 4 * 2,
+		gl.BufferData(gl.ARRAY_BUFFER, len(positions)*4*2,
 			unsafe.Pointer(&positions[0]), gl.STATIC_DRAW)
 		gl.BindBuffer(gl.ARRAY_BUFFER, 0)
 
@@ -121,4 +119,3 @@ func main() {
 		glfw.PollEvents()
 	}
 }
-

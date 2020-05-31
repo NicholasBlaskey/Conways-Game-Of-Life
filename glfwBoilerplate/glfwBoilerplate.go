@@ -1,19 +1,19 @@
 package glfwBoilerplate
 
-import(
+import (
 	"fmt"
-	
+
 	"github.com/go-gl/gl/v4.1-core/gl"
 	"github.com/go-gl/glfw/v3.1/glfw"
 )
 
 func InitGLFW(windowTitle string,
 	width, height int, useDepthTest bool) *glfw.Window {
-	
+
 	if err := glfw.Init(); err != nil {
 		panic(err)
 	}
-	
+
 	glfw.WindowHint(glfw.ContextVersionMajor, 4)
 	glfw.WindowHint(glfw.ContextVersionMinor, 1)
 	glfw.WindowHint(glfw.OpenGLProfile, glfw.OpenGLCoreProfile)
@@ -36,7 +36,7 @@ func InitGLFW(windowTitle string,
 	if useDepthTest {
 		gl.Enable(gl.DEPTH_TEST)
 	}
-	
+
 	return window
 }
 
@@ -59,7 +59,7 @@ func DisplayFrameRate(window *glfw.Window, title string,
 	delta := currentTime - lastTime
 	numFrames += 1
 	if delta >= 1.0 {
-		window.SetTitle(fmt.Sprintf(title + " fps=%f", numFrames / delta))
+		window.SetTitle(fmt.Sprintf(title+" fps=%f", numFrames/delta))
 		numFrames = 0
 		lastTime = currentTime
 	}

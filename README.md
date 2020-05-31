@@ -53,3 +53,8 @@ This method creates a single object of vertices and only the color attrib is upd
 
 This method uses the geometry shader. Instead of needing to pass 6 vertices in we can pass in a single point for each triangle.
 
+### Shoutout
+
+https://learnopengl.com/
+
+Concepts and code ideas taken from the LearnOpenGL tutorial.
