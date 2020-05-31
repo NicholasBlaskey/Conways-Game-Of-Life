@@ -96,4 +96,12 @@ This method tries to take advantage of the depth buffer. We only render squares 
 
 ### Geometry shader
 
-This method uses a geometry shader to only need to render a pixel for each point then the geometry shader transforms this pixel into each square.
+This method uses the geometry shader. Instead of needing to pass 6 vertices in we can pass in a single point for each triangle.
+
+~675fps at 25x25
+
+~625fps at 100x100
+
+~225fps at 500x500
+
+~100fps at 1000x1000
