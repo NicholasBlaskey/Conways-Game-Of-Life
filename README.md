@@ -54,6 +54,18 @@ Instancing takes advantage of using the Instancing feature in OpenGl to avoid CP
 
 ~80fps at 1000x1000
 
+### One Color Instancing
+
+This method is the same as instancing but we are only drawing the white squares. Instead of updating a color VBO each frame we are updating a position VBO each frame.
+
+~725fps at 25x25
+
+~700fps at 100x100
+
+~300fps at 500x500
+
+~110fps at 1000x1000
+
 ### Chunks
 
 This method will take a chunk size (we are going to assume that numX divides this size for simplicity). We will then generate 2^chunkSize VAOs that represent each of the possible color combinations of the chunksize. We will then lookup the chunksize.
