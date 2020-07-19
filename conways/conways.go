@@ -2,6 +2,7 @@ package conways
 
 import (
 	"math/rand"
+	"sync"
 
 	mgl "github.com/go-gl/mathgl/mgl32"
 )
@@ -45,18 +46,20 @@ func UpdateBoard(board []float32, numX, numY int) {
 		helperBoard = append(helperBoard, row)
 	}
 
-	go handleEdgeCases(helperBoard, board, numX, numY)
-
-	for i := 1; i < numY-2; i++ {
-		go handleRow(helperBoard, board, numX, numY, i)
+	var wg sync.WaitGroup
+	go handleEdgeCases(helperBoard, board, numX, numY, &wg)
+	wg.Add(1)
+	for i := 1; i < numY-1; i++ {
+		wg.Add(1)
+		go handleRow(helperBoard, board, numX, numY, i, &wg)
 	}
-	// Wait for the last row to finish before ending function
-	handleRow(helperBoard, board, numX, numY, numY-2)
+	wg.Wait()
 }
 
 func handleRow(helperBoard [][]float32, board []float32,
-	numX, numY, i int) {
+	numX, numY, i int, wg *sync.WaitGroup) {
 
+	defer wg.Done()
 	for j := 1; j < numX-1; j++ {
 		neighborCount := helperBoard[i][j-1] +
 			helperBoard[i][j+1] +
@@ -79,7 +82,9 @@ func handleRow(helperBoard [][]float32, board []float32,
 }
 
 func handleEdgeCases(helperBoard [][]float32, board []float32,
-	numX, numY int) {
+	numX, numY int, wg *sync.WaitGroup) {
+
+	defer wg.Done()
 	// Handle top row and bottom row
 	for j := 0; j < numX; j += 1 {
 		updateCellEdgeCase(helperBoard, board, numX, numY, 0, j)
